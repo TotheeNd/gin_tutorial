@@ -1,9 +1,13 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
-	"gin-ranking/dao"
+	"gin-ranking/pkg/logger"
+	"log"
 	"time"
+
+	goora "github.com/sijms/go-ora/v2"
 	// "github.com/jinzhu/gorm"
 )
 
@@ -35,6 +39,11 @@ type Player struct {
 	END_DATE  *time.Time `json:"END_DATE"`
 }
 
+var (
+	DB  *sql.DB
+	err error
+)
+
 func (Player) TableName() string {
 	return "player"
 }
@@ -45,7 +54,27 @@ func GetPlayers(aid string, sort string) ([]Player, error) {
 	fmt.Println("代码跑到这里了！！！")
 	fmt.Println("aid:", aid)
 	fmt.Println("sort:", sort)
-	rows, err := dao.DB.Query("SELECT *  FROM SMS_INFO_TEST WHERE msisdn = ?", aid)
+
+	sql.Register("goora", goora.NewDriver())
+	// Oracle 数据库连接信息
+	dsn := goora.BuildUrl("10.251.16.185", 1521, "histdb", "SUTIE", "5Jxz6T^6$", nil)
+
+	// 创建数据库连接
+	DB, err = sql.Open("goora", dsn)
+
+	// Db, err = gorm.Open("mysql", config.Mysqldb)
+	if err != nil {
+		fmt.Println("数据库连接失败")
+		logger.Error(map[string]interface{}{"oracle connect error": err.Error()})
+	}
+	fmt.Println("数据库连接成功!")
+	pingErr := DB.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+	fmt.Println("Connected!")
+
+	rows, err := DB.Query("SELECT *  FROM SMS_INFO_TEST WHERE msisdn = ?", aid)
 	// err := dao.Db.Where("aid = ?", aid).Order(sort).Find(&players).Error
 	fmt.Println("代码跑到第二个这里了！！！")
 	if err != nil {
