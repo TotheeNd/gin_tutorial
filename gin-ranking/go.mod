@@ -33,6 +33,7 @@ require (
 	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/redis/go-redis/v9 v9.0.5 // indirect
+	github.com/sijms/go-ora/v2 v2.8.19
 	github.com/sirupsen/logrus v1.9.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

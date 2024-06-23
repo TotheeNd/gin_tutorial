@@ -1,35 +1,60 @@
 package dao
 
 import (
-	"gin-ranking/config"
+	// "gin-ranking/config"
 	"gin-ranking/pkg/logger"
-	"time"
+	// "time"
+	// "github.com/jinzhu/gorm"
+	// _ "github.com/jinzhu/gorm/dialects/mysql"
+	"database/sql"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"fmt"
+	"log"
+
+	goora "github.com/sijms/go-ora/v2"
 )
 
 var (
-	Db  *gorm.DB
+	DB  *sql.DB
 	err error
 )
 
 func init() {
-	Db, err = gorm.Open("mysql", config.Mysqldb)
+
+	fmt.Println("程序执行进入DAO包中!")
+
+	// Register the go-ora driver
+	sql.Register("goora", goora.NewDriver())
+
+	// Oracle 数据库连接信息
+	dsn := goora.BuildUrl("10.251.16.185", 1521, "histdb", "SUTIE", "5Jxz6T^6$", nil)
+
+	// 创建数据库连接
+	DB, err = sql.Open("goora", dsn)
+
+	// Db, err = gorm.Open("mysql", config.Mysqldb)
 	if err != nil {
-		logger.Error(map[string]interface{}{"mysql connect error": err.Error()})
+		fmt.Println("数据库连接失败")
+		logger.Error(map[string]interface{}{"oracle connect error": err.Error()})
 	}
-	if Db.Error != nil {
-		logger.Error(map[string]interface{}{"database error": Db.Error})
+	fmt.Println("数据库连接成功!")
+	pingErr := DB.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
 	}
+	fmt.Println("Connected!")
 
-	// ----------------------- 连接池设置 -----------------------
-	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
-	Db.DB().SetMaxIdleConns(10)
+	// if Db.Error != nil {
+	// 	logger.Error(map[string]interface{}{"database error": Db.Error})
+	// }
 
-	// SetMaxOpenConns 设置打开数据库连接的最大数量。
-	Db.DB().SetMaxOpenConns(100)
+	// // ----------------------- 连接池设置 -----------------------
+	// // SetMaxIdleConns 设置空闲连接池中连接的最大数量
+	// Db.DB().SetMaxIdleConns(10)
 
-	// SetConnMaxLifetime 设置了连接可复用的最大时间。
-	Db.DB().SetConnMaxLifetime(time.Hour)
+	// // SetMaxOpenConns 设置打开数据库连接的最大数量。
+	// Db.DB().SetMaxOpenConns(100)
+
+	// // SetConnMaxLifetime 设置了连接可复用的最大时间。
+	// Db.DB().SetConnMaxLifetime(time.Hour)
 }
