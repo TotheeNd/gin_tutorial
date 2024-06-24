@@ -31,9 +31,6 @@ type Player struct {
 	STS       string     `json:"STS"`
 	GET_DATE  time.Time  `json:"GET_DATE"`
 	SEND_DATE time.Time  `json:"SEND_DATE"`
-	PARA1     string     `json:"PARA1"`
-	PARA2     string     `json:"PARA2"`
-	PARA3     string     `json:"PARA3"`
 	RECV      string     `json:"RECV"`
 	DONE_CODE int64      `json:"DONE_CODE"`
 	END_DATE  *time.Time `json:"END_DATE"`
@@ -74,9 +71,13 @@ func GetPlayers(aid string, sort string) ([]Player, error) {
 	}
 	fmt.Println("Connected!")
 
-	rows, err := DB.Query("SELECT *  FROM SMS_INFO_TEST WHERE msisdn = ?", aid)
+	querySQL := fmt.Sprintf("SELECT ID,MSISDN,FLAG,MSG,STS,GET_DATE,SEND_DATE,RECV,DONE_CODE,END_DATE FROM SMS_INFO_TEST WHERE MSISDN = %s", aid)
+	fmt.Println("querySQL:", querySQL)
+
+	rows, err := DB.Query(querySQL)
 	// err := dao.Db.Where("aid = ?", aid).Order(sort).Find(&players).Error
-	fmt.Println("代码跑到第二个这里了！！！")
+	fmt.Println(err)
+
 	if err != nil {
 		return nil, fmt.Errorf("第一处查询错误 : %s", aid)
 	}
@@ -85,7 +86,8 @@ func GetPlayers(aid string, sort string) ([]Player, error) {
 	// Loop through rows, using Scan to assign column data to struct fields.
 	for rows.Next() {
 		var player Player
-		if err := rows.Scan(&player.ID, &player.Aid, &player.FLAG, &player.MSG, &player.STS, &player.GET_DATE, &player.SEND_DATE, &player.PARA1, &player.PARA2, &player.PARA3, &player.RECV, &player.DONE_CODE, &player.END_DATE); err != nil {
+		if err := rows.Scan(&player.ID, &player.Aid, &player.FLAG, &player.MSG, &player.STS, &player.GET_DATE, &player.SEND_DATE, &player.RECV, &player.DONE_CODE, &player.END_DATE); err != nil {
+			fmt.Println(err)
 			return nil, fmt.Errorf("第二处查询错误 : %s", aid)
 		}
 
@@ -93,6 +95,7 @@ func GetPlayers(aid string, sort string) ([]Player, error) {
 		players = append(players, player)
 	}
 	if err := rows.Err(); err != nil {
+		fmt.Println(err)
 		return nil, fmt.Errorf("第三处查询错误 : %s", aid)
 	}
 	fmt.Println("代码跑到第五个这里了！！！")
