@@ -1,8 +1,9 @@
 package dao
 
 import (
-	// "gin-ranking/config"
+	"gin-ranking/config"
 	"gin-ranking/pkg/logger"
+
 	// "time"
 	// "github.com/jinzhu/gorm"
 	// _ "github.com/jinzhu/gorm/dialects/mysql"
@@ -26,11 +27,8 @@ func init() {
 	// Register the go-ora driver
 	sql.Register("goora", goora.NewDriver())
 
-	// Oracle 数据库连接信息
-	dsn := goora.BuildUrl("10.251.16.185", 1521, "histdb", "SUTIE", "5Jxz6T^6$", nil)
-
 	// 创建数据库连接
-	DB, err = sql.Open("goora", dsn)
+	DB, err = sql.Open("goora", config.Dsn)
 
 	// Db, err = gorm.Open("mysql", config.Mysqldb)
 	if err != nil {
