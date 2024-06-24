@@ -1,13 +1,9 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
-	"gin-ranking/pkg/logger"
-	"log"
+	"gin-ranking/dao"
 	"time"
-
-	goora "github.com/sijms/go-ora/v2"
 	// "github.com/jinzhu/gorm"
 )
 
@@ -36,11 +32,6 @@ type Player struct {
 	END_DATE  *time.Time `json:"END_DATE"`
 }
 
-var (
-	DB  *sql.DB
-	err error
-)
-
 func (Player) TableName() string {
 	return "player"
 }
@@ -48,40 +39,16 @@ func (Player) TableName() string {
 // 此处是查询数据库的入口
 func GetPlayers(aid string, sort string) ([]Player, error) {
 	var players []Player
-	fmt.Println("代码跑到这里了！！！")
-	fmt.Println("aid:", aid)
-	fmt.Println("sort:", sort)
-
-	sql.Register("goora", goora.NewDriver())
-	// Oracle 数据库连接信息
-	dsn := goora.BuildUrl("10.251.16.185", 1521, "histdb", "SUTIE", "5Jxz6T^6$", nil)
-
-	// 创建数据库连接
-	DB, err = sql.Open("goora", dsn)
-
-	// Db, err = gorm.Open("mysql", config.Mysqldb)
-	if err != nil {
-		fmt.Println("数据库连接失败")
-		logger.Error(map[string]interface{}{"oracle connect error": err.Error()})
-	}
-	fmt.Println("数据库连接成功!")
-	pingErr := DB.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	fmt.Println("Connected!")
-
 	querySQL := fmt.Sprintf("SELECT ID,MSISDN,FLAG,MSG,STS,GET_DATE,SEND_DATE,RECV,DONE_CODE,END_DATE FROM SMS_INFO_TEST WHERE MSISDN = %s", aid)
 	fmt.Println("querySQL:", querySQL)
 
-	rows, err := DB.Query(querySQL)
+	rows, err := dao.DB.Query(querySQL)
 	// err := dao.Db.Where("aid = ?", aid).Order(sort).Find(&players).Error
-	fmt.Println(err)
 
 	if err != nil {
+		fmt.Println(err)
 		return nil, fmt.Errorf("第一处查询错误 : %s", aid)
 	}
-	fmt.Println("代码跑到第三个这里了！！！")
 	defer rows.Close()
 	// Loop through rows, using Scan to assign column data to struct fields.
 	for rows.Next() {
@@ -90,15 +57,12 @@ func GetPlayers(aid string, sort string) ([]Player, error) {
 			fmt.Println(err)
 			return nil, fmt.Errorf("第二处查询错误 : %s", aid)
 		}
-
-		fmt.Println("代码跑到第四个这里了！！！")
 		players = append(players, player)
 	}
 	if err := rows.Err(); err != nil {
 		fmt.Println(err)
 		return nil, fmt.Errorf("第三处查询错误 : %s", aid)
 	}
-	fmt.Println("代码跑到第五个这里了！！！")
 	return players, err
 }
 
